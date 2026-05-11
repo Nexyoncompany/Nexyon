@@ -16,15 +16,36 @@ export default function Home() {
                   Home
                 </a>
                 <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Trending
+                  Achadinhos
                 </a>
                 <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Categories
+                  Tendências
+                </a>
+                <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Utilidades
                 </a>
                 <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                   About
                 </a>
               </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Pesquisar produtos..."
+                  className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
+                />
+              </div>
+              <button className="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                Login
+              </button>
+              <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
+                Criar Conta
+              </button>
+              <button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
+                Explorar
+              </button>
             </div>
           </div>
         </div>
@@ -49,6 +70,38 @@ export default function Home() {
             <button className="border-2 border-white/20 hover:border-white/40 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 backdrop-blur-sm bg-white/5">
               Learn More
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Categorias
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition-all duration-300 transform hover:scale-105 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🔍</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Achadinhos</h3>
+              <p className="text-gray-400">Descubra produtos únicos e raros em promoções imperdíveis.</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-purple-400/50 transition-all duration-300 transform hover:scale-105 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">📈</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Tendências</h3>
+              <p className="text-gray-400">Produtos virais que estão bombando nas redes sociais.</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-pink-400/50 transition-all duration-300 transform hover:scale-105 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <span className="text-2xl">🛠️</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Utilidades</h3>
+              <p className="text-gray-400">Itens práticos e funcionais para o dia a dia.</p>
+            </div>
           </div>
         </div>
       </section>
