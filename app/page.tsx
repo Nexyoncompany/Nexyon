@@ -37,15 +37,15 @@ export default function Home() {
                   className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
                 />
               </div>
-              <button className="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <a href="/login" className="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
                 Login
-              </button>
-              <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
+              </a>
+              <a href="/register" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
                 Criar Conta
-              </button>
-              <button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
-                Explorar
-              </button>
+              </a>
+              <a href="/admin/login" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
+                Admin
+              </a>
             </div>
           </div>
         </div>
