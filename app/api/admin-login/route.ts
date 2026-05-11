@@ -5,8 +5,9 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    // Usar variáveis de ambiente com fallback
+    const adminEmail = process.env.ADMIN_EMAIL || 'nexyoncompany@gmail.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Nexyonadm1981';
 
     // Validar credenciais
     if (email === adminEmail && password === adminPassword) {
@@ -41,3 +42,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
