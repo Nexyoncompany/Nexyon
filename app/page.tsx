@@ -1,177 +1,189 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import { initialBanners, initialCategories, initialProducts } from '@/lib/cms-data';
+
+const productStorageKey = 'nexyon-admin-products';
+const bannerStorageKey = 'nexyon-admin-banners';
+
 export default function Home() {
+  const [products, setProducts] = useState(initialProducts);
+  const [banners, setBanners] = useState(initialBanners);
+
+  useEffect(() => {
+    const storedProducts = window.localStorage.getItem(productStorageKey);
+    const storedBanners = window.localStorage.getItem(bannerStorageKey);
+
+    if (storedProducts) {
+      try {
+        setProducts(JSON.parse(storedProducts));
+      } catch {
+        setProducts(initialProducts);
+      }
+    }
+
+    if (storedBanners) {
+      try {
+        setBanners(JSON.parse(storedBanners));
+      } catch {
+        setBanners(initialBanners);
+      }
+    }
+  }, []);
+
+  const activeProducts = useMemo(() => products.filter((product) => product.active), [products]);
+  const activeBanners = useMemo(
+    () => banners.filter((banner) => banner.active).sort((a, b) => a.order - b.order),
+    [banners]
+  );
+
+  const heroBanner = activeBanners.find((banner) => banner.position === 'hero');
+  const topBanner = activeBanners.find((banner) => banner.position === 'top');
+  const sectionBanner = activeBanners.find((banner) => banner.position === 'sidebar');
+  const footerBanner = activeBanners.find((banner) => banner.position === 'footer');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      {/* Navbar */}
       <nav className="fixed top-0 w-full z-50 bg-black/20 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                NEXYON
-              </h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">NEXYON</h1>
             </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <a href="#" className="text-white hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Home
-                </a>
-                <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Achadinhos
-                </a>
-                <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Tendências
-                </a>
-                <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  Utilidades
-                </a>
-                <a href="#" className="text-white/70 hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                  About
-                </a>
-              </div>
+            <div className="hidden md:flex gap-4 items-center text-sm">
+              <a href="#" className="text-white hover:text-blue-400 transition">Home</a>
+              <a href="#products" className="text-white/70 hover:text-blue-400 transition">Achadinhos</a>
+              <a href="#products" className="text-white/70 hover:text-blue-400 transition">Tendências</a>
+              <a href="#products" className="text-white/70 hover:text-blue-400 transition">Utilidades</a>
+              <a href="#about" className="text-white/70 hover:text-blue-400 transition">About</a>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Pesquisar produtos..."
-                  className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-64"
-                />
-              </div>
-              <a href="/login" className="text-white/70 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                Login
-              </a>
-              <a href="/register" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
-                Criar Conta
-              </a>
-              <a href="/admin/login" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300">
-                Admin
-              </a>
+            <div className="flex items-center gap-3">
+              <a href="/login" className="text-white/70 hover:text-white text-sm transition">Login</a>
+              <a href="/register" className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:scale-[1.02]">Criar Conta</a>
+              <a href="/admin/login" className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 text-sm font-medium text-white transition hover:scale-[1.02]">Admin</a>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold mb-6">
-            Discover the Future of{' '}
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              Trending Products
-            </span>
-          </h1>
-          <p className="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-            Curated viral products from global trends, powered by AI to bring you the most sought-after items in ecommerce.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
-              Shop Trending
-            </button>
-            <button className="border-2 border-white/20 hover:border-white/40 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 backdrop-blur-sm bg-white/5">
-              Learn More
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Categorias
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition-all duration-300 transform hover:scale-105 text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🔍</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Achadinhos</h3>
-              <p className="text-gray-400">Descubra produtos únicos e raros em promoções imperdíveis.</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-purple-400/50 transition-all duration-300 transform hover:scale-105 text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">📈</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Tendências</h3>
-              <p className="text-gray-400">Produtos virais que estão bombando nas redes sociais.</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-pink-400/50 transition-all duration-300 transform hover:scale-105 text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🛠️</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Utilidades</h3>
-              <p className="text-gray-400">Itens práticos e funcionais para o dia a dia.</p>
+      <main className="pt-24 pb-16">
+        <section className="px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold mb-6">
+              Discover the Future of{' '}
+              <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Trending Products
+              </span>
+            </h1>
+            <p className="text-xl sm:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+              Curated viral products from global trends, powered by AI and affiliate performance to deliver the best offers directly to your audience.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="#products" className="rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 text-sm font-bold text-white transition hover:scale-105">Shop Trending</a>
+              <a href="#banners" className="rounded-full border border-white/20 bg-white/5 px-8 py-3 text-sm font-bold text-white transition hover:bg-white/10">Learn More</a>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Trending Products Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Trending Products
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[1, 2, 3, 4].map((item) => (
-              <div key={item} className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:border-purple-400/50 transition-all duration-300 transform hover:scale-105">
-                <div className="h-48 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-xl mb-4"></div>
-                <h3 className="text-xl font-semibold mb-2">Viral Product {item}</h3>
-                <p className="text-gray-400 mb-4">Trending item curated by AI for maximum appeal.</p>
-                <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-300">
-                  View Details
-                </button>
-              </div>
+        {heroBanner && (
+          <section className="mt-12 px-4 sm:px-6 lg:px-8" id="banners">
+            <div className="max-w-7xl mx-auto overflow-hidden rounded-[2rem] border border-white/10 bg-black/50 shadow-2xl shadow-black/40">
+              <a href={heroBanner.destinationUrl || '#'} target={heroBanner.destinationUrl ? '_blank' : '_self'} rel="noopener noreferrer">
+                <img src={heroBanner.imageDesktop} alt={heroBanner.title} className="w-full object-cover" />
+                <div className="p-8 bg-gradient-to-t from-slate-950/90 to-transparent">
+                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{heroBanner.position.replace('-', ' ')}</p>
+                  <h2 className="mt-4 text-4xl font-bold">{heroBanner.title}</h2>
+                  <p className="mt-3 max-w-2xl text-slate-300">{heroBanner.subtitle}</p>
+                </div>
+              </a>
+            </div>
+          </section>
+        )}
+
+        {topBanner && (
+          <section className="mt-10 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto rounded-3xl overflow-hidden border border-white/10 bg-white/5 shadow-xl shadow-slate-950/20">
+              <a href={topBanner.destinationUrl || '#'} target={topBanner.destinationUrl ? '_blank' : '_self'} rel="noopener noreferrer">
+                <img src={topBanner.imageDesktop} alt={topBanner.title} className="w-full object-cover" />
+              </a>
+            </div>
+          </section>
+        )}
+
+        <section className="mt-16 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-10 text-center">
+              <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">Categorias</p>
+              <h2 className="mt-4 text-3xl sm:text-4xl font-bold">Descubra por categoria</h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {initialCategories.map((category) => (
+                <div key={category.id} className="rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-lg shadow-slate-950/10 transition hover:border-blue-400/40 hover:scale-[1.02]">
+                  <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{category.name}</p>
+                  <h3 className="mt-4 text-xl font-semibold">{category.description}</h3>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {sectionBanner && (
+          <section className="mt-16 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto rounded-3xl overflow-hidden border border-white/10 bg-white/5 shadow-xl shadow-slate-950/20">
+              <a href={sectionBanner.destinationUrl || '#'} target={sectionBanner.destinationUrl ? '_blank' : '_self'} rel="noopener noreferrer">
+                <img src={sectionBanner.imageDesktop} alt={sectionBanner.title} className="w-full object-cover" />
+              </a>
+            </div>
+          </section>
+        )}
+
+        <section className="mt-16 px-4 sm:px-6 lg:px-8" id="products">
+          <div className="max-w-7xl mx-auto mb-10 text-center">
+            <p className="text-sm uppercase tracking-[0.35em] text-cyan-300">Produtos</p>
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold">Produtos em destaque</h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {activeProducts.map((product) => (
+              <a
+                key={product.id}
+                href={product.affiliateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-xl shadow-slate-950/10 transition hover:-translate-y-1 hover:border-blue-400/40"
+              >
+                <div className="h-64 overflow-hidden bg-slate-950">
+                  <img src={product.image} alt={product.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <span className="rounded-full bg-cyan-500/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-cyan-200">{product.platform}</span>
+                    <span className="text-sm text-white/70">{product.category}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-3">{product.name}</h3>
+                  <p className="text-sm text-slate-300 mb-4">{product.shortDescription}</p>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-lg font-bold">{product.price}</p>
+                    <span className="rounded-full bg-white/10 px-4 py-2 text-sm text-white transition group-hover:bg-blue-500/20">Ver Oferta</span>
+                  </div>
+                </div>
+              </a>
             ))}
+            {activeProducts.length === 0 && (
+              <div className="col-span-full rounded-3xl border border-white/10 bg-white/5 p-10 text-center text-slate-400">Nenhum produto disponível no momento.</div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Why Nexyon Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-black/20">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">Why Nexyon</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🤖</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">AI Curated</h3>
-              <p className="text-gray-400">Advanced AI algorithms analyze global trends to curate the perfect products.</p>
+        {footerBanner && (
+          <section className="mt-16 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto rounded-3xl overflow-hidden border border-white/10 bg-white/5 shadow-xl shadow-slate-950/20">
+              <a href={footerBanner.destinationUrl || '#'} target={footerBanner.destinationUrl ? '_blank' : '_self'} rel="noopener noreferrer">
+                <img src={footerBanner.imageDesktop} alt={footerBanner.title} className="w-full object-cover" />
+              </a>
             </div>
-            <div className="text-center p-6 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">🌍</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Global Trends</h3>
-              <p className="text-gray-400">Access trending products from around the world, from TikTok to Amazon.</p>
-            </div>
-            <div className="text-center p-6 bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10">
-              <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-2xl">⭐</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Premium Selection</h3>
-              <p className="text-gray-400">Only the highest quality, most viral products make it to our curated list.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10">
-        <div className="max-w-7xl mx-auto text-center">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
-            NEXYON
-          </h3>
-          <p className="text-gray-400 mb-6">The future of trending product discovery.</p>
-          <div className="flex justify-center space-x-6">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms</a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a>
-          </div>
-          <p className="text-gray-500 text-sm mt-6">© 2024 Nexyon. All rights reserved.</p>
-        </div>
-      </footer>
+          </section>
+        )}
+      </main>
     </div>
   );
 }

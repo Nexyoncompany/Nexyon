@@ -1,15 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { initialCategories, initialProducts, type Product } from '@/lib/cms-data';
 
 const platformOptions = ['Amazon', 'Shopee', 'AliExpress', 'Mercado Livre', 'Outro'];
+const storageKey = 'nexyon-admin-products';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todas');
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [error, setError] = useState('');
   const [form, setForm] = useState<Partial<Product>>({
     name: '',
     slug: '',
@@ -18,7 +20,7 @@ export default function ProductsPage() {
     category: 'Achadinhos',
     tags: [],
     price: 'R$ 0,00',
-    salePrice: 'R$ 0,00',
+    salePrice: '',
     commission: 'R$ 0,00',
     platform: 'Amazon',
     affiliateUrl: '',
@@ -30,6 +32,21 @@ export default function ProductsPage() {
     active: true,
     createdAt: new Date().toISOString().slice(0, 10),
   });
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        setProducts(JSON.parse(stored));
+      } catch {
+        setProducts(initialProducts);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(products));
+  }, [products]);
 
   const filteredProducts = useMemo(
     () =>
@@ -44,15 +61,9 @@ export default function ProductsPage() {
     [products, search, selectedCategory]
   );
 
-  const handleDelete = (id: number) => {
-    setProducts(products.filter((product) => product.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      resetForm();
-    }
-  };
-
   const resetForm = () => {
+    setError('');
+    setEditingId(null);
     setForm({
       name: '',
       slug: '',
@@ -61,7 +72,7 @@ export default function ProductsPage() {
       category: 'Achadinhos',
       tags: [],
       price: 'R$ 0,00',
-      salePrice: 'R$ 0,00',
+      salePrice: '',
       commission: 'R$ 0,00',
       platform: 'Amazon',
       affiliateUrl: '',
@@ -78,23 +89,46 @@ export default function ProductsPage() {
   const handleEdit = (product: Product) => {
     setEditingId(product.id);
     setForm(product);
+    setError('');
+  };
+
+  const handleDelete = (id: number) => {
+    setProducts(products.filter((product) => product.id !== id));
+    if (editingId === id) {
+      resetForm();
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm({ ...form, image: reader.result as string });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (!form.name || !form.affiliateUrl) {
+      setError('Nome do produto e URL de afiliado são obrigatórios.');
+      return;
+    }
+
     const nextProduct: Product = {
       id: editingId ?? Math.max(0, ...products.map((item) => item.id)) + 1,
-      name: form.name || '',
-      slug: form.slug || (form.name?.toLowerCase().replace(/\s+/g, '-') ?? ''),
+      name: form.name,
+      slug: form.slug || form.name.toLowerCase().replace(/\s+/g, '-'),
       shortDescription: form.shortDescription || '',
       description: form.description || '',
       category: form.category || 'Achadinhos',
       tags: form.tags || [],
       price: form.price || 'R$ 0,00',
-      salePrice: form.salePrice || 'R$ 0,00',
+      salePrice: form.salePrice || '',
       commission: form.commission || 'R$ 0,00',
       platform: form.platform || 'Amazon',
-      affiliateUrl: form.affiliateUrl || '',
+      affiliateUrl: form.affiliateUrl,
       image: form.image || 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=900&q=80',
       gallery: form.gallery?.length ? form.gallery : [],
       video: form.video || '',
@@ -109,8 +143,6 @@ export default function ProductsPage() {
     } else {
       setProducts([nextProduct, ...products]);
     }
-
-    setEditingId(null);
     resetForm();
   };
 
@@ -147,16 +179,22 @@ export default function ProductsPage() {
             <table className="min-w-full divide-y divide-white/10 text-sm">
               <thead className="bg-slate-950/90">
                 <tr>
-                  <th className="px-6 py-4 text-left font-semibold">Produto</th>
-                  <th className="px-6 py-4 text-left font-semibold">Plataforma</th>
-                  <th className="px-6 py-4 text-center font-semibold">Status</th>
-                  <th className="px-6 py-4 text-right font-semibold">Preço</th>
-                  <th className="px-6 py-4 text-right font-semibold">Ações</th>
+                  <th className="px-4 py-3 text-left font-semibold">Imagem</th>
+                  <th className="px-6 py-3 text-left font-semibold">Produto</th>
+                  <th className="px-6 py-3 text-left font-semibold">Plataforma</th>
+                  <th className="px-6 py-3 text-center font-semibold">Status</th>
+                  <th className="px-6 py-3 text-right font-semibold">Preço</th>
+                  <th className="px-6 py-3 text-right font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10 bg-slate-950/80">
                 {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-white/5 transition-colors">
+                    <td className="px-4 py-4">
+                      <div className="h-14 w-14 overflow-hidden rounded-2xl bg-slate-800">
+                        <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                      </div>
+                    </td>
                     <td className="px-6 py-4">
                       <p className="font-medium">{product.name}</p>
                       <p className="text-xs text-slate-400">{product.category}</p>
@@ -186,7 +224,7 @@ export default function ProductsPage() {
                 ))}
                 {filteredProducts.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
                       Nenhum produto encontrado.
                     </td>
                   </tr>
@@ -245,33 +283,62 @@ export default function ProductsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Preço</label>
-              <input
-                value={form.price || ''}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Preço promocional</label>
-              <input
-                value={form.salePrice || ''}
-                onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
               <label className="block text-sm font-medium mb-2">URL de afiliado</label>
               <input
+                type="url"
                 value={form.affiliateUrl || ''}
                 onChange={(e) => setForm({ ...form, affiliateUrl: e.target.value })}
                 className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Descrição curta</label>
+              <textarea
+                value={form.shortDescription || ''}
+                onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+                rows={3}
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium mb-2">Preço exibido</label>
+                <input
+                  value={form.price || ''}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Preço promocional</label>
+                <input
+                  value={form.salePrice || ''}
+                  onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                  className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Upload da imagem principal</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {form.image && (
+              <div className="rounded-3xl overflow-hidden border border-white/10 bg-slate-950/80">
+                <img src={form.image} alt="Preview" className="h-40 w-full object-cover" />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <label className="flex items-center gap-3 text-sm">
                 <input
                   type="checkbox"
@@ -292,23 +359,17 @@ export default function ProductsPage() {
               </label>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <label className="flex items-center gap-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.active ?? true}
-                  onChange={(e) => setForm({ ...form, active: e.target.checked })}
-                  className="h-4 w-4 rounded border-white/20 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
-                />
-                Produto ativo
-              </label>
-              <label className="block text-sm font-medium mb-2">Comissão estimada</label>
+            <label className="flex items-center gap-3 text-sm">
               <input
-                value={form.commission || ''}
-                onChange={(e) => setForm({ ...form, commission: e.target.value })}
-                className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                type="checkbox"
+                checked={form.active ?? true}
+                onChange={(e) => setForm({ ...form, active: e.target.checked })}
+                className="h-4 w-4 rounded border-white/20 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
               />
-            </div>
+              Produto ativo
+            </label>
+
+            {error && <p className="text-sm text-red-300">{error}</p>}
 
             <button
               type="submit"

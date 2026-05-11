@@ -1,14 +1,21 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { initialBanners } from '@/lib/cms-data';
+import { useEffect, useMemo, useState } from 'react';
+import { initialBanners, type Banner } from '@/lib/cms-data';
 
-const positions = ['hero', 'top', 'sidebar', 'footer'] as const;
+const positions = [
+  { value: 'hero', label: 'Hero Principal' },
+  { value: 'top', label: 'Topo' },
+  { value: 'sidebar', label: 'Entre Seções' },
+  { value: 'footer', label: 'Rodapé' },
+] as const;
+const storageKey = 'nexyon-admin-banners';
 
 export default function BannersPage() {
-  const [banners, setBanners] = useState(initialBanners);
+  const [banners, setBanners] = useState<Banner[]>(initialBanners);
   const [query, setQuery] = useState('');
-  const [newBanner, setNewBanner] = useState({
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm] = useState<Partial<Banner>>({
     title: '',
     subtitle: '',
     imageDesktop: '',
@@ -16,34 +23,92 @@ export default function BannersPage() {
     destinationUrl: '',
     order: 1,
     active: true,
-    position: 'hero' as typeof positions[number],
+    position: 'hero',
   });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        setBanners(JSON.parse(stored));
+      } catch {
+        setBanners(initialBanners);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(storageKey, JSON.stringify(banners));
+  }, [banners]);
 
   const filtered = useMemo(
     () => banners.filter((banner) => banner.title.toLowerCase().includes(query.toLowerCase())),
     [banners, query]
   );
 
-  const handleAdd = (event: React.FormEvent) => {
+  const resetForm = () => {
+    setError('');
+    setEditingId(null);
+    setForm({
+      title: '',
+      subtitle: '',
+      imageDesktop: '',
+      imageMobile: '',
+      destinationUrl: '',
+      order: 1,
+      active: true,
+      position: 'hero',
+    });
+  };
+
+  const handleEdit = (banner: Banner) => {
+    setEditingId(banner.id);
+    setForm(banner);
+    setError('');
+  };
+
+  const handleDelete = (id: number) => {
+    setBanners(banners.filter((banner) => banner.id !== id));
+    if (editingId === id) {
+      resetForm();
+    }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setForm({ ...form, imageDesktop: reader.result as string, imageMobile: reader.result as string });
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!newBanner.title || !newBanner.destinationUrl) return;
+    if (!form.title || !form.imageDesktop) {
+      setError('Título e imagem são obrigatórios.');
+      return;
+    }
 
-    setBanners([
-      {
-        id: Math.max(0, ...banners.map((item) => item.id)) + 1,
-        ...newBanner,
-      },
-      ...banners,
-    ]);
+    const nextBanner: Banner = {
+      id: editingId ?? Math.max(0, ...banners.map((item) => item.id)) + 1,
+      title: form.title,
+      subtitle: form.subtitle || '',
+      imageDesktop: form.imageDesktop!,
+      imageMobile: form.imageMobile || form.imageDesktop || '',
+      destinationUrl: form.destinationUrl || '',
+      order: form.order ?? 1,
+      active: form.active ?? true,
+      position: form.position ?? 'hero',
+    };
 
-    setNewBanner({ title: '', subtitle: '', imageDesktop: '', imageMobile: '', destinationUrl: '', order: 1, active: true, position: 'hero' });
+    if (editingId) {
+      setBanners(banners.map((banner) => (banner.id === editingId ? nextBanner : banner)));
+    } else {
+      setBanners([nextBanner, ...banners]);
+    }
+    resetForm();
   };
-
-  const toggleActive = (id: number) => {
-    setBanners(banners.map((item) => (item.id === id ? { ...item, active: !item.active } : item)));
-  };
-
-  const remove = (id: number) => setBanners(banners.filter((item) => item.id !== id));
 
   return (
     <div className="space-y-8">
@@ -76,7 +141,7 @@ export default function BannersPage() {
                 {filtered.map((banner) => (
                   <tr key={banner.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">{banner.title}</td>
-                    <td className="px-6 py-4">{banner.position}</td>
+                    <td className="px-6 py-4">{positions.find((item) => item.value === banner.position)?.label || banner.position}</td>
                     <td className="px-6 py-4 text-center">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${banner.active ? 'bg-emerald-500/20 text-emerald-200' : 'bg-red-500/20 text-red-200'}`}>
                         {banner.active ? 'Ativo' : 'Inativo'}
@@ -84,13 +149,13 @@ export default function BannersPage() {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <button
-                        onClick={() => toggleActive(banner.id)}
+                        onClick={() => handleEdit(banner)}
                         className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white hover:bg-white/10 transition"
                       >
-                        {banner.active ? 'Desativar' : 'Ativar'}
+                        Editar
                       </button>
                       <button
-                        onClick={() => remove(banner.id)}
+                        onClick={() => handleDelete(banner.id)}
                         className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs text-red-300 hover:bg-red-500/20 transition"
                       >
                         Excluir
@@ -104,44 +169,43 @@ export default function BannersPage() {
 
           <div className="rounded-3xl border border-white/10 bg-slate-900/80 p-6">
             <h2 className="text-2xl font-semibold mb-4">Novo banner</h2>
-            <form onSubmit={handleAdd} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Título</label>
                 <input
-                  value={newBanner.title}
-                  onChange={(e) => setNewBanner({ ...newBanner, title: e.target.value })}
+                  value={form.title || ''}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
                   className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Subtítulo</label>
                 <input
-                  value={newBanner.subtitle}
-                  onChange={(e) => setNewBanner({ ...newBanner, subtitle: e.target.value })}
+                  value={form.subtitle || ''}
+                  onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
                   className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Imagem desktop</label>
+                <label className="block text-sm font-medium mb-2">Imagem do banner</label>
                 <input
-                  value={newBanner.imageDesktop}
-                  onChange={(e) => setNewBanner({ ...newBanner, imageDesktop: e.target.value })}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
                   className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Imagem mobile</label>
-                <input
-                  value={newBanner.imageMobile}
-                  onChange={(e) => setNewBanner({ ...newBanner, imageMobile: e.target.value })}
-                  className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              {form.imageDesktop && (
+                <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-950/80">
+                  <img src={form.imageDesktop} alt="Preview banner" className="h-40 w-full object-cover" />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium mb-2">Link de destino</label>
                 <input
-                  value={newBanner.destinationUrl}
-                  onChange={(e) => setNewBanner({ ...newBanner, destinationUrl: e.target.value })}
+                  type="url"
+                  value={form.destinationUrl || ''}
+                  onChange={(e) => setForm({ ...form, destinationUrl: e.target.value })}
                   className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -149,13 +213,13 @@ export default function BannersPage() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Posição</label>
                   <select
-                    value={newBanner.position}
-                    onChange={(e) => setNewBanner({ ...newBanner, position: e.target.value as typeof positions[number] })}
+                    value={form.position}
+                    onChange={(e) => setForm({ ...form, position: e.target.value as Banner['position'] })}
                     className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {positions.map((position) => (
-                      <option key={position} value={position}>
-                        {position}
+                    {positions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
                       </option>
                     ))}
                   </select>
@@ -164,8 +228,8 @@ export default function BannersPage() {
                   <label className="block text-sm font-medium mb-2">Ordem</label>
                   <input
                     type="number"
-                    value={newBanner.order}
-                    onChange={(e) => setNewBanner({ ...newBanner, order: Number(e.target.value) })}
+                    value={form.order ?? 1}
+                    onChange={(e) => setForm({ ...form, order: Number(e.target.value) })}
                     className="w-full rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -173,17 +237,18 @@ export default function BannersPage() {
               <label className="flex items-center gap-3 text-sm">
                 <input
                   type="checkbox"
-                  checked={newBanner.active}
-                  onChange={(e) => setNewBanner({ ...newBanner, active: e.target.checked })}
+                  checked={form.active ?? true}
+                  onChange={(e) => setForm({ ...form, active: e.target.checked })}
                   className="h-4 w-4 rounded border-white/20 bg-slate-950 text-cyan-500 focus:ring-cyan-500"
                 />
                 Banner ativo
               </label>
+              {error && <p className="text-sm text-red-300">{error}</p>}
               <button
                 type="submit"
                 className="w-full rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]"
               >
-                Criar Banner
+                {editingId ? 'Atualizar Banner' : 'Adicionar Banner'}
               </button>
             </form>
           </div>
