@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function AdminDashboard() {
   const [period, setPeriod] = useState('7d');
@@ -50,6 +51,32 @@ export default function AdminDashboard() {
     { label: 'Gerenciar Comissões', icon: '💰', href: '/admin/commissions' },
     { label: 'Criar Banner', icon: '🖼️', href: '/admin/settings' },
     { label: 'Configurações', icon: '⚙️', href: '/admin/settings' },
+  ];
+
+  // Dados para gráficos
+  const revenueData = [
+    { month: 'Jan', revenue: 12000 },
+    { month: 'Fev', revenue: 15000 },
+    { month: 'Mar', revenue: 18000 },
+    { month: 'Abr', revenue: 22000 },
+    { month: 'Mai', revenue: 25000 },
+    { month: 'Jun', revenue: 28000 },
+  ];
+
+  const commissionData = [
+    { platform: 'Amazon', commission: 4500 },
+    { platform: 'Shopee', commission: 3200 },
+    { platform: 'TikTok Shop', commission: 2800 },
+    { platform: 'Mercado Livre', commission: 2100 },
+    { platform: 'AliExpress', commission: 1800 },
+  ];
+
+  const roiData = [
+    { campaign: 'Google Ads', roi: 450 },
+    { campaign: 'Meta Ads', roi: 400 },
+    { campaign: 'TikTok Ads', roi: 500 },
+    { campaign: 'Pinterest', roi: 300 },
+    { campaign: 'YouTube', roi: 350 },
   ];
 
   return (
@@ -226,7 +253,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Abandoned Carts Table */}
-        <div>
+        <div className="mb-8">
           <h2 className="text-xl font-bold mb-4">Carrinhos Abandonados</h2>
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden">
             <div className="overflow-x-auto">
@@ -252,6 +279,69 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Revenue Chart */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+            <h3 className="text-lg font-bold mb-4">Receita por Período</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="month" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Commission Chart */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6">
+            <h3 className="text-lg font-bold mb-4">Comissão por Plataforma</h3>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={commissionData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis dataKey="platform" stroke="#9CA3AF" />
+                <YAxis stroke="#9CA3AF" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Bar dataKey="commission" fill="#8B5CF6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* ROI Chart */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 p-6 mb-8">
+          <h3 className="text-lg font-bold mb-4">ROI por Campanha</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={roiData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="campaign" stroke="#9CA3AF" />
+              <YAxis stroke="#9CA3AF" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(0,0,0,0.8)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '8px',
+                }}
+              />
+              <Bar dataKey="roi" fill="#10B981" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
