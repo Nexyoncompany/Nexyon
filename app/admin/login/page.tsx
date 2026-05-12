@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { loginUser, isAuthenticated, isAdmin } from '@/lib/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -11,26 +12,30 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    // Se o usuário já está autenticado e é admin, redireciona para dashboard
+    if (isAuthenticated() && isAdmin()) {
+      router.push('/admin/dashboard');
+    }
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      const result = await loginUser(email, password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Login bem-sucedido, redirecionar para dashboard
-        router.push('/admin/dashboard');
+      if (result.success) {
+        // Verifica se é admin
+        if (result.user?.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          setError('Este também só é para administradores. Sua conta é de cliente.');
+        }
       } else {
-        // Erro de autenticação
-        setError(data.message || 'Email ou senha inválidos.');
+        setError(result.error || 'Email ou senha inválidos.');
       }
     } catch (err) {
       console.error('Erro ao fazer login:', err);
@@ -50,16 +55,24 @@ export default function AdminLoginPage() {
             </h1>
             <p className="text-gray-400">Painel administrativo</p>
           </div>
+
+          {/* Demo credentials */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6 text-sm text-blue-200">
+            <p className="font-semibold mb-2">📝 Credenciais de teste:</p>
+            <p>Email: <span className="font-mono">admin@nexyon.com</span></p>
+            <p>Senha: <span className="font-mono">admin123</span></p>
+          </div>
           
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label className="block text-sm font-medium mb-2">Email Administrativo</label>
               <input
                 type="email"
-                placeholder="admin@exemplo.com"
+                placeholder="admin@nexyon.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                required
+                className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition disabled:opacity-50"
                 disabled={loading}
               />
             </div>
@@ -72,7 +85,8 @@ export default function AdminLoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                  required
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400 transition disabled:opacity-50"
                   disabled={loading}
                 />
                 <button
@@ -81,7 +95,7 @@ export default function AdminLoginPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                   disabled={loading}
                 >
-                  {showPassword ? '🙈' : '👁️'}
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
                 </button>
               </div>
             </div>
@@ -95,7 +109,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-bold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-700 hover:from-blue-700 hover:to-purple-800 text-white font-bold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
             >
               {loading ? 'Acessando...' : 'Acessar Painel'}
             </button>

@@ -101,6 +101,49 @@ export interface MediaFile {
   uploadDate: string;
 }
 
+export interface PlatformBalance {
+  id: string;
+  platform: string;
+  icon: string;
+  available: string;
+  pending: string;
+  received: string;
+  nextPaymentDate: string;
+  minimumWithdrawal?: string;
+}
+
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  accountHolder: string;
+  cpfCnpj: string;
+  agency: string;
+  accountNumber: string;
+  accountType: 'checking' | 'savings';
+  pixKey?: string;
+  isDefault: boolean;
+}
+
+export interface Transfer {
+  id: string;
+  platform: string;
+  amount: string;
+  bankAccountId: string;
+  date: string;
+  status: 'pending' | 'completed' | 'failed';
+  referenceNumber?: string;
+}
+
+export interface Receipt {
+  id: string;
+  platform: string;
+  amount: string;
+  status: 'pending' | 'received' | 'cancelled';
+  expectedDate: string;
+  receivedDate?: string;
+  referenceNumber?: string;
+}
+
 // Default values
 const defaultSettings: Settings = {
   siteName: 'NEXYON',
@@ -225,6 +268,88 @@ export function initializeStorage() {
     // Campaigns
     if (!localStorage.getItem('nexyon_campaigns')) {
       localStorage.setItem('nexyon_campaigns', JSON.stringify([]));
+    }
+
+    // Platform Balances
+    if (!localStorage.getItem('nexyon_platform_balances')) {
+      const defaultBalances: PlatformBalance[] = [
+        {
+          id: '1',
+          platform: 'Amazon Associates',
+          icon: '🛍️',
+          available: 'R$ 2.450,00',
+          pending: 'R$ 1.520,00',
+          received: 'R$ 8.750,00',
+          nextPaymentDate: '2026-06-28',
+          minimumWithdrawal: 'R$ 100,00',
+        },
+        {
+          id: '2',
+          platform: 'Shopee Affiliates',
+          icon: '🏪',
+          available: 'R$ 1.850,50',
+          pending: 'R$ 890,00',
+          received: 'R$ 5.200,00',
+          nextPaymentDate: '2026-06-15',
+          minimumWithdrawal: 'R$ 50,00',
+        },
+        {
+          id: '3',
+          platform: 'AliExpress Affiliates',
+          icon: '📦',
+          available: 'R$ 520,00',
+          pending: 'R$ 345,00',
+          received: 'R$ 2.100,00',
+          nextPaymentDate: '2026-06-25',
+          minimumWithdrawal: 'R$ 200,00',
+        },
+        {
+          id: '4',
+          platform: 'Mercado Livre Partners',
+          icon: '💼',
+          available: 'R$ 3.120,00',
+          pending: 'R$ 750,00',
+          received: 'R$ 6.800,00',
+          nextPaymentDate: '2026-06-30',
+          minimumWithdrawal: 'R$ 50,00',
+        },
+        {
+          id: '5',
+          platform: 'TikTok Shop',
+          icon: '🎵',
+          available: 'R$ 980,00',
+          pending: 'R$ 520,00',
+          received: 'R$ 3.450,00',
+          nextPaymentDate: '2026-06-20',
+          minimumWithdrawal: 'R$ 100,00',
+        },
+        {
+          id: '6',
+          platform: 'Google AdSense',
+          icon: '📱',
+          available: 'R$ 1.200,00',
+          pending: 'R$ 400,00',
+          received: 'R$ 4.500,00',
+          nextPaymentDate: '2026-06-21',
+          minimumWithdrawal: 'R$ 100,00',
+        },
+      ];
+      localStorage.setItem('nexyon_platform_balances', JSON.stringify(defaultBalances));
+    }
+
+    // Bank Accounts
+    if (!localStorage.getItem('nexyon_bank_accounts')) {
+      localStorage.setItem('nexyon_bank_accounts', JSON.stringify([]));
+    }
+
+    // Transfers
+    if (!localStorage.getItem('nexyon_transfers')) {
+      localStorage.setItem('nexyon_transfers', JSON.stringify([]));
+    }
+
+    // Receipts
+    if (!localStorage.getItem('nexyon_receipts')) {
+      localStorage.setItem('nexyon_receipts', JSON.stringify([]));
     }
   } catch (error) {
     console.error('Failed to initialize storage:', error);
@@ -363,5 +488,82 @@ export function saveCampaigns(campaigns: Campaign[]) {
     localStorage.setItem('nexyon_campaigns', JSON.stringify(campaigns));
   } catch (error) {
     console.error('Failed to save campaigns:', error);
+  }
+}
+
+// Finance methods
+export function getPlatformBalances(): PlatformBalance[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('nexyon_platform_balances');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getBankAccounts(): BankAccount[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('nexyon_bank_accounts');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getTransfers(): Transfer[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('nexyon_transfers');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getReceipts(): Receipt[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem('nexyon_receipts');
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function savePlatformBalances(balances: PlatformBalance[]) {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('nexyon_platform_balances', JSON.stringify(balances));
+  } catch (error) {
+    console.error('Failed to save platform balances:', error);
+  }
+}
+
+export function saveBankAccounts(accounts: BankAccount[]) {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('nexyon_bank_accounts', JSON.stringify(accounts));
+  } catch (error) {
+    console.error('Failed to save bank accounts:', error);
+  }
+}
+
+export function saveTransfers(transfers: Transfer[]) {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('nexyon_transfers', JSON.stringify(transfers));
+  } catch (error) {
+    console.error('Failed to save transfers:', error);
+  }
+}
+
+export function saveReceipts(receipts: Receipt[]) {
+  try {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('nexyon_receipts', JSON.stringify(receipts));
+  } catch (error) {
+    console.error('Failed to save receipts:', error);
   }
 }
